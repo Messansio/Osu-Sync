@@ -7,3 +7,6 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(bit7z)
+
+set(BIT7Z_ENABLE_SANITIZERS ON)
+set(BIT7Z_PATH_SANITIZATION ON)

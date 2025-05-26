@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.31)
 
 project(OsuSync VERSION 1.0)
 
@@ -11,20 +11,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Set the output directories for the compiled binaries
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-
-
-option(ENABLED_DEBUG "Enable tests" ON) # Set the build type
-
-if(ENABLED_DEBUG)
-    message(STATUS "Selected debug build")
-    set(CMAKE_CONFIGURATION_TYPE Debug)
-    add_compile_options("$<$<CONFIG:DEBUG>:-DDEBUG>")
-else()
-    message(STATUS "Selected release build")
-    set(CMAKE_CONFIGURATION_TYPE Release)
-    add_compile_options("$<$<CONFIG:RELEASE>:-DRELEASE>")
-endif()
 
 
 
