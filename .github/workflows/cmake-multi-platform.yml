@@ -56,6 +56,36 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
+    - name: Download and build 7-Zip
+      shell: bash
+      run: |
+        curl -LO https://www.7-zip.org/a/7z2409-src.7z
+        7z x 7z2409-src.7z -o7zip-src
+      # WINDOWS: build 7z.dll
+    - name: Build 7-Zip on Windows
+      if: runner.os == 'windows-latest'
+      shell: bash
+      run: |
+        curl -LO https://www.7-zip.org/a/7z2409-src.7z
+        7z x 7z2409-src.7z -o7zip-src
+        cd 7zip-src\CPP\7zip\Bundles\Format7zF
+        msbuild Format7zF.sln /p:Configuration=Release /p:Platform=x64
+        copy x64\Release\7z.dll %GITHUB_WORKSPACE%
+
+    # LINUX: build lib7z.so
+    - name: Build 7-Zip on Linux
+      if: runner.os == 'ubuntu-latest'
+      shell: bash
+      run: |
+        curl -LO https://www.7-zip.org/a/7z2409-src.7z
+        7z x 7z2409-src.7z -o7zip-src
+        cd 7zip-src/CPP/7zip
+        g++ -fPIC -shared -o lib7z.so \
+        Archive/7z/*.cpp Archive/Common/*.cpp \
+        Compress/*.cpp \
+        ../../Common/*.cpp ../../Windows/*.cpp \
+        -I. -I../../Common -I../../Windows
+        cp lib7z.so $GITHUB_WORKSPACE
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
