@@ -25,7 +25,7 @@ bool askIfSync() {
 }
 
 void GitHubLink() {
-    std::cout << "GitHub: \n";
+    std::cout << "GitHub: https://github.com/Messansio/Osu-Sync.git\n";
 }
 
 int main(void) {
