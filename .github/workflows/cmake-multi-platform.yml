@@ -76,4 +76,4 @@ jobs:
       with:
         name: OsuSync-${{ runner.os }}
         compression-level: 9
-        path: ${{ github.workspace }}/build/bin/**/*
+        path: ${{ github.workspace }}/build/out/**/*

@@ -1,4 +1,4 @@
-add_executable(OsuSync main.cpp)
+add_executable(OsuSync main.cpp ${RESOURCE_DIR}/OsuSync.rc)
 
 target_link_libraries(OsuSync PRIVATE
     OsuPathUtility
