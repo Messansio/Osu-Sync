@@ -1,15 +1,15 @@
 add_executable(OsuSync main.cpp)
 
 target_link_libraries(OsuSync PRIVATE
-    Osu_Path_Tool
-    bit7z
+    OsuPathUtility
     CompressionUtility
+    raylib
 )
 
 target_include_directories(OsuSync PRIVATE
-    Osu_Path_Tool
-    ${bit7z_SOURCE_DIR}/include
+    OsuPathUtility
     CompressionUtility
+    raylib
 )
 
 target_compile_definitions(OsuSync PRIVATE

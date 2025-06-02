@@ -39,6 +39,8 @@ int main(void) {
 
     std::cout << "If you have any issues, please report them on the GitHub repository.\n";
     GitHubLink();
+    std::cout << "\n" ;
+    std::cout << "\n" ;
 
     const bool isSyncing = askIfSync();
 
