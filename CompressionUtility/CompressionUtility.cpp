@@ -4,8 +4,10 @@
 #include <bit7z/bitarchivewriter.hpp>
 #include <bit7z/bitfileextractor.hpp>
 
-#ifdef _WIN32 ||_WIN64
+#if defined(_WIN32) || defined(_WIN64)
 #define SEVEN_Z_PATH "C:/Program Files/7-Zip/7z.dll"
+#else
+#define SEVEN_Z_PATH "/usr/lib/7z.so"
 #endif
 
 CompressionUtility::CompressionUtility(const bool& isSyncingClient)

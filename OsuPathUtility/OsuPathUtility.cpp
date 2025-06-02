@@ -20,6 +20,7 @@ void OsuPathUtility::CopyOsuFiles() {
     createDirectory(copyPath / "OsuFiles");
     copyPath.append("OsuFiles");
 
+    #if defined(_WIN32) || defined(_WIN64)
     if (osuType == 2 || osuType == 0) {
         createDirectory(copyPath / "Stable");
         const std::filesystem::path copyingPath = copyPath / "Stable";
@@ -46,6 +47,7 @@ void OsuPathUtility::CopyOsuFiles() {
         std::cout << "Copying collection db..\n";
         copyFile(osuSPath / "collection.db", copyingPath / "collection.db");
     }
+    #endif
     if (osuType == 2 || osuType == 1) {
         createDirectory(copyPath / "Lazer");
         const std::filesystem::path copyingPath = copyPath / "Lazer";
@@ -63,20 +65,28 @@ void OsuPathUtility::CopyOsuFiles() {
 
 void OsuPathUtility::SyncOsuFiles() {
     const std::filesystem::path copyPath = std::filesystem::current_path();
-    const bool stableExists = std::filesystem::exists(copyPath / "OsuFiles" / "Stable");
-    const bool lazerExists = std::filesystem::exists(copyPath / "OsuFiles" / "Lazer");
-    const bool bothExists = stableExists && lazerExists;
 
+    const bool lazerExists = std::filesystem::exists(copyPath / "OsuFiles" / "Lazer");
+    #if defined(_WIN32) || defined(_WIN64)
+    const bool stableExists = std::filesystem::exists(copyPath / "OsuFiles" / "Stable");
+    const bool bothExists = stableExists && lazerExists;
+    #endif
+
+    #if defined(_WIN32) || defined(_WIN64)
     if (bothExists) osuType = 2;
     else if (lazerExists) osuType = 1;
     else if (stableExists) osuType = 0;
+    #else
+    if (lazerExists) osuType = 1;
+    #endif
     else {
         std::cout << "Can't find your OsuFiles folder.\n Report this issue to GitHub.\n";
         exit(7272);
     }
     
     const std::filesystem::path syncPath = std::filesystem::current_path() / "OsuFiles";
-
+    
+    #if defined(_WIN32) || defined(_WIN64)
     if (osuType == 2 || osuType == 0) {
     const std::filesystem::path syncingPath = syncPath / "Stable";
 
@@ -98,6 +108,7 @@ void OsuPathUtility::SyncOsuFiles() {
         std::cout << "Copying collection db..\n";
         copyFile(syncingPath / "collection.db", osuSPath / "collection.db");
     }
+    #endif
     if (osuType == 2 || osuType == 1) {
         const std::filesystem::path syncingPath = syncPath / "Lazer";
 
@@ -121,6 +132,7 @@ void OsuPathUtility::SyncOsuFiles() {
 }
 
 void OsuPathUtility::askStableOrLazer() {
+    #if defined(_WIN32) || defined(_WIN64)
     std::string temp;
     std::cout << "Chose which osu! you want to sync?\n0: Stable (default)\n1: Lazer\n2: Both\n";
     std::cout << "Your input: ";
@@ -137,16 +149,21 @@ void OsuPathUtility::askStableOrLazer() {
         std::cout << "Invalid input, defaulting to Stable.\n";
         osuType = 0; // Default to Stable
     }
+    #else
+    osuType = 1;
+    #endif
 }
 
 bool OsuPathUtility::locateOsuFolder() {
     bool noError = true;
 
+    #if defined(_WIN32) || defined(_WIN64)
     if (osuType == 2 || osuType == 0) {
         noError = locateOsuSFolder();
         if (!noError) return noError;
         else std::cout << "Found osu!stable directory at " << osuSPath.generic_string() << "\n";
     }
+    #endif
 
     if (osuType == 2 || osuType == 1) {
         noError = locateOsuLFolder();
@@ -158,13 +175,28 @@ bool OsuPathUtility::locateOsuFolder() {
 }
 
 bool OsuPathUtility::locateOsuSFolder() {
+    #if defined(_WIN32) || defined(_WIN64)
     osuSPath = getenv("LOCALAPPDATA");
+
     osuSPath.append("osu!");
     return std::filesystem::exists(osuSPath);
+    #else
+    return false;
+    #endif
 }
 
 bool OsuPathUtility::locateOsuLFolder() {
+    #if defined(_WIN32) || defined(_WIN64)
     osuLPath = getenv("APPDATA");
+    #else
+    if (!std::filesystem::exists(osuSPath))
+    {
+        osuLPath = getenv("HOME");
+        osuLPath.append(".local");
+        osuLPath.append("share");
+    }
+    #endif
+
     osuLPath.append("osu");
     return std::filesystem::exists(osuLPath);
 }
