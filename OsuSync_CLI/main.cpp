@@ -28,16 +28,16 @@ bool askIfSync() {
 }
 
 std::pair<bool,bool> askStableOrLazer() {
+    std::cout<<"inizio funzione \n";
     bool isLazer = true;
     bool isStable = false;
-
+    std::cout<<"booleani \n";
     #if defined(_WIN32) || defined(_WIN64)
     std::string temp;
     std::cout << "Chose which osu! you want to sync?\n0: Stable (default)\n1: Lazer\n2: Both\n";
     std::cout << "Your input: ";
     std::cin >> temp;
     std::cout << "\n";
-
     if (temp[0] == '2' || temp[0] == '1') {
         isLazer = true;
     } else {
@@ -56,6 +56,7 @@ std::pair<bool,bool> askStableOrLazer() {
         isLazer = false;
     }
     #endif
+    std::cout<<"questo è linux!!\n";
     return std::make_pair(isStable, isLazer);
 }
 
