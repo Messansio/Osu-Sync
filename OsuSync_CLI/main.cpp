@@ -28,7 +28,9 @@ bool askIfSync() {
 }
 
 std::pair<bool,bool> askStableOrLazer() {
+    std::cout << "core stupido 1";
     std::pair<bool,bool> isLazerOrStable = std::make_pair(false, true);
+    std::cout << "core stupido 2";
     #if defined(_WIN32) || defined(_WIN64)
     std::string temp;
     std::cout << "Chose which osu! you want to sync?\n0: Stable (default)\n1: Lazer\n2: Both\n";
