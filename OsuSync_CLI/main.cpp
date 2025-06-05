@@ -28,36 +28,33 @@ bool askIfSync() {
 }
 
 std::pair<bool,bool> askStableOrLazer() {
-    std::cout<<"inizio funzione \n";
-    bool isLazer = true;
-    bool isStable = false;
-    std::cout<<"booleani \n";
+    std::pair<bool,bool> isLazerOrStable = std::make_pair(false, true);
     #if defined(_WIN32) || defined(_WIN64)
     std::string temp;
     std::cout << "Chose which osu! you want to sync?\n0: Stable (default)\n1: Lazer\n2: Both\n";
     std::cout << "Your input: ";
     std::cin >> temp;
     std::cout << "\n";
-    if (temp[0] == '2' || temp[0] == '1') {
-        isLazer = true;
-    } else {
-        isLazer = false;
-    }
-    
+
     if (temp[0] == '2' || temp[0] == '0') {
-        isStable = true;
+        isLazerOrStable.first = true;
     } else {
-        isStable = false;
+        isLazerOrStable.first = false;
     }
 
-    if (!isStable && !isLazer) {
+    if (temp[0] == '2' || temp[0] == '1') {
+        isLazerOrStable.second = true;
+    } else {
+        isLazerOrStable.second = false;
+    }
+
+    if (!isLazerOrStable.first && !isLazerOrStable.second) {
         std::cout << "Invalid input, defaulting to Stable.\n";
-        isStable = true;
-        isLazer = false;
+        isLazerOrStable.first = true;
+        isLazerOrStable.second = false;
     }
     #endif
-    std::cout<<"questo è linux!!\n";
-    return std::make_pair(isStable, isLazer);
+    return isLazerOrStable;
 }
 
 void run(const bool isSyncing, std::pair<bool,bool> whatClient, std::queue<std::string> &textQueue, std::mutex &mutex, std::condition_variable &queueNotify) {
