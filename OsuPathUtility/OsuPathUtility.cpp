@@ -188,16 +188,12 @@ bool OsuPathUtility::locateOsuSFolder() {
 bool OsuPathUtility::locateOsuLFolder() {
     #if defined(_WIN32) || defined(_WIN64)
     osuLPath = getenv("APPDATA");
-    #else
-    if (!std::filesystem::exists(osuSPath))
-    {
-        osuLPath = getenv("HOME");
-        osuLPath.append(".local");
-        osuLPath.append("share");
-    }
-    #endif
-
     osuLPath.append("osu");
+    #else
+        osuLPath = getenv("APPDATA");
+        osuLPath.append("sh.ppy.osu");
+
+    #endif
     return std::filesystem::exists(osuLPath);
 }
 
