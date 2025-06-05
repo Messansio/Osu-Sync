@@ -29,7 +29,7 @@ bool askIfSync() {
 
 std::pair<bool,bool> askStableOrLazer() {
     std::cout << "core stupido 1";
-    std::pair<bool,bool> isLazerOrStable = std::make_pair(false, true);
+    std::pair<bool,bool> isLazerOrStable{false, true};
     std::cout << "core stupido 2";
     #if defined(_WIN32) || defined(_WIN64)
     std::string temp;
