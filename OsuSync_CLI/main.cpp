@@ -1,5 +1,8 @@
 #include <OsuPathUtility.h>
 #include <CompressionUtility.h>
+#include <thread>
+#include <atomic>
+#include <mutex>
 #include <iostream>
 
 bool inputValidation(const std::string& input) {
@@ -24,6 +27,55 @@ bool askIfSync() {
     return temp[0] == 'y' || temp[0] == 'Y';
 }
 
+std::pair<bool,bool> askStableOrLazer() {
+    bool isLazer = true;
+    bool isStable = false;
+
+    #if defined(_WIN32) || defined(_WIN64)
+    std::string temp;
+    std::cout << "Chose which osu! you want to sync?\n0: Stable (default)\n1: Lazer\n2: Both\n";
+    std::cout << "Your input: ";
+    std::cin >> temp;
+    std::cout << "\n";
+
+    if (temp[0] == '2' || temp[0] == '1') {
+        isLazer = true;
+    } else {
+        isLazer = false;
+    }
+    
+    if (temp[0] == '2' || temp[0] == '0') {
+        isStable = true;
+    } else {
+        isStable = false;
+    }
+
+    if (!isStable && !isLazer) {
+        std::cout << "Invalid input, defaulting to Stable.\n";
+        isStable = true;
+        isLazer = false;
+    }
+    #endif
+    return std::make_pair(isStable, isLazer);
+}
+
+void run(const bool isSyncing, std::pair<bool,bool> whatClient, std::queue<std::string> &textQueue, std::mutex &mutex, std::condition_variable &queueNotify) {
+    try {
+        OsuPathUtility osuPathUtility(isSyncing, whatClient, textQueue, mutex, queueNotify);
+        CompressionUtility zipper(isSyncing, textQueue, mutex, queueNotify);
+        if (isSyncing) {
+            zipper.Decompress();
+            osuPathUtility.SyncOsuFiles();
+        } else {
+            osuPathUtility.CopyOsuFiles();
+            zipper.Compress();
+        }
+    } catch(const std::exception& e) {
+        std::cout << e.what() << "\n";
+    }
+}
+
+
 void GitHubLink() {
     std::cout << "GitHub: https://github.com/Messansio/Osu-Sync.git\n";
 }
@@ -44,15 +96,33 @@ int main(void) {
 
     const bool isSyncing = askIfSync();
 
-    OsuPathUtility osuPathUtility(isSyncing);
-    CompressionUtility zipper(isSyncing);
-    if (isSyncing) {
-        zipper.Decompress();
-        osuPathUtility.SyncOsuFiles();
-    } else {
-        osuPathUtility.CopyOsuFiles();
-        zipper.Compress();
+    std::pair<bool,bool> whatClient = askStableOrLazer();
+
+    std::queue<std::string> textQueue;
+    std::mutex queueMutex;
+    std::condition_variable queueNotify;
+    
+    std::thread osuSyncThread(&run, isSyncing, whatClient, ref(textQueue), ref(queueMutex), ref(queueNotify));
+
+    std::atomic<bool> running = true;
+
+    while(running) {
+        std::unique_lock<std::mutex> lock(queueMutex);
+
+        while(!textQueue.empty()) {
+        std::cout << textQueue.front().c_str() << "\n";
+        textQueue.pop();
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+
+        queueNotify.wait(lock, [&textQueue, &running] {
+        return !textQueue.empty() || !running;
+        });
+
+        if (osuSyncThread.joinable() && textQueue.empty()) running = false;
     }
+
+    osuSyncThread.join();
 
     std::cout << "If you liked it, pls star the project on GitHub.\n";
     GitHubLink();
