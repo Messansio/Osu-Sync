@@ -1,16 +1,16 @@
 #include "OsuPathUtility.h"
 
-OsuPathUtility::OsuPathUtility(const bool isSyncing) 
-: osuType(0) {
+#include <stdexcept>
+
+OsuPathUtility::OsuPathUtility(const bool isSyncing, const std::pair<bool,bool> whatClient, std::queue<std::string> &stringQueue, std::mutex &mutex, std::condition_variable &queueCV) 
+: osuType(whatClient), textQueue(&stringQueue), queueMutex(&mutex), queueNotify(&queueCV) {
     osuSPath.clear();
     osuLPath.clear();
-    if (!isSyncing) askStableOrLazer();
 
     bool found = locateOsuFolder();
 
     if (!found) {
-        std::cout << "Can't find your osu! folder.\n";
-        exit(7270);
+        throw std::invalid_argument("Can't find your osu! folder.");
     }
 }
 
@@ -21,7 +21,7 @@ void OsuPathUtility::CopyOsuFiles() {
     copyPath.append("OsuFiles");
 
     #if defined(_WIN32) || defined(_WIN64)
-    if (osuType == 2 || osuType == 0) {
+    if (osuType.first) {
         createDirectory(copyPath / "Stable");
         const std::filesystem::path copyingPath = copyPath / "Stable";
 
@@ -29,146 +29,116 @@ void OsuPathUtility::CopyOsuFiles() {
         createDirectory(copyingPath / "Songs");
         createDirectory(copyingPath / "Skins");
 
-        std::cout << "Copying beatmaps..\n";
+        sendText("Copying beatmaps..");
         copyFiles(osuSPath / "Songs", copyingPath / "Songs");
 
-        std::cout << "Copying skins..\n";
+        sendText("Copying skins..");
         copyFiles(osuSPath / "Skins", copyingPath / "Skins");
 
-        std::cout << "Copying replays..\n";
+        sendText("Copying replays..");
         copyFiles(osuSPath / "Replays", copyingPath / "Replays");
 
-        std::cout << "Copying osu db..\n";
+        sendText("Copying osu db..");
         copyFile(osuSPath / "osu!.db", copyingPath / "osu!.db");
 
-        std::cout << "Copying scores db..\n";
+        sendText("Copying scores db..");
         copyFile(osuSPath / "scores.db", copyingPath / "scores.db");
 
-        std::cout << "Copying collection db..\n";
+        sendText("Copying collection db..");
         copyFile(osuSPath / "collection.db", copyingPath / "collection.db");
     }
     #endif
-    if (osuType == 2 || osuType == 1) {
+    if (osuType.second) {
         createDirectory(copyPath / "Lazer");
         const std::filesystem::path copyingPath = copyPath / "Lazer";
 
         createDirectory(copyingPath / "files");
 
-        std::cout << "Copying files..\n";
-        copyFiles(osuLPath / "files", copyPath / "files");
+        sendText("Copying files..");
+        copyFiles(osuLPath / "files", copyingPath / "files");
 
-        std::cout << "Copying realm..\n";
-        copyFile(osuLPath / "client.realm", copyPath / "client.realm");
+        sendText("Copying realm..");
+        copyFile(osuLPath / "client.realm", copyingPath / "client.realm");
     }
-    std::cout << "Copying complete\n";
+    sendText("Copying complete!");
 }
 
 void OsuPathUtility::SyncOsuFiles() {
     const std::filesystem::path copyPath = std::filesystem::current_path();
 
-    const bool lazerExists = std::filesystem::exists(copyPath / "OsuFiles" / "Lazer");
     #if defined(_WIN32) || defined(_WIN64)
-    const bool stableExists = std::filesystem::exists(copyPath / "OsuFiles" / "Stable");
-    const bool bothExists = stableExists && lazerExists;
+    const bool clientsExists = std::filesystem::exists(copyPath / "OsuFiles" / "Stable") && osuType.first
+                            || std::filesystem::exists(copyPath / "OsuFiles" / "Lazer") && osuType.second;
+    #else
+    const bool clientsExists = std::filesystem::exists(copyPath / "OsuFiles" / "Lazer") && osuType.second;
     #endif
 
-    #if defined(_WIN32) || defined(_WIN64)
-    if (bothExists) osuType = 2;
-    else if (lazerExists) osuType = 1;
-    else if (stableExists) osuType = 0;
-    #else
-    if (lazerExists) osuType = 1;
-    #endif
-    else {
-        std::cout << "Can't find your OsuFiles folder.\n Report this issue to GitHub.\n";
-        exit(7272);
+    if (!clientsExists) {
+        throw std::invalid_argument("Can't find your OsuFiles folder.");
     }
     
     const std::filesystem::path syncPath = std::filesystem::current_path() / "OsuFiles";
     
     #if defined(_WIN32) || defined(_WIN64)
-    if (osuType == 2 || osuType == 0) {
-    const std::filesystem::path syncingPath = syncPath / "Stable";
+    if (osuType.first) {
+        const std::filesystem::path syncingPath = syncPath / "Stable";
 
-    std::cout << "Copying beatmaps..\n";
+        sendText("Syncing beatmaps..");
         copyFiles(syncingPath / "Songs", osuSPath / "Songs");
 
-        std::cout << "Copying skins..\n";
+        sendText("Syncing skins..");
         copyFiles(syncingPath / "Skins", osuSPath / "Skins");
 
-        std::cout << "Copying replays..\n";
+        sendText("Syncing replays..");
         copyFiles(syncingPath / "Replays", osuSPath / "Replays");
 
-        std::cout << "Copying osu db..\n";
+        sendText("Syncing osu db..");
         copyFile(syncingPath / "osu!.db", osuSPath / "osu!.db");
 
-        std::cout << "Copying scores db..\n";
+        sendText("Syncing scores db..");
         copyFile(syncingPath / "scores.db", osuSPath / "scores.db");
 
-        std::cout << "Copying collection db..\n";
+        sendText("Syncing collection db..");
         copyFile(syncingPath / "collection.db", osuSPath / "collection.db");
     }
     #endif
-    if (osuType == 2 || osuType == 1) {
+    if (osuType.second) {
         const std::filesystem::path syncingPath = syncPath / "Lazer";
 
-        std::cout << "Copying files..\n";
+        sendText("Syncing files..");
         copyFiles(syncingPath / "files", osuLPath / "files");
 
-        std::cout << "Copying realm..\n";
+        sendText("Syncing realm..");
         copyFile(syncingPath / "client.realm", osuLPath / "client.realm");
     }
-    std::cout << "Copying complete\n";
+    sendText("Copying complete!");
 
-    std::cout << "Deleting the cache files.\n";
+    sendText("Deleting the cache files.");
 
     try {
         std::filesystem::remove_all(syncPath);
     } catch (const std::exception& e) {
-        std::cerr << "Error deleting cache files: " << e.what() << '\n';
+        throw std::invalid_argument(e.what());
     }
 
-    std::cout << "Cache Deleted.\n";
-}
-
-void OsuPathUtility::askStableOrLazer() {
-    #if defined(_WIN32) || defined(_WIN64)
-    std::string temp;
-    std::cout << "Chose which osu! you want to sync?\n0: Stable (default)\n1: Lazer\n2: Both\n";
-    std::cout << "Your input: ";
-    std::cin >> temp;
-    std::cout << "\n";
-
-    if (temp[0] == '2') {
-        osuType = 2; // Both
-    } else if (temp[0] == '1') {
-        osuType = 1; // Lazer
-    } else if (temp[0] == '0') {
-        osuType = 0; // Stable
-    } else {
-        std::cout << "Invalid input, defaulting to Stable.\n";
-        osuType = 0; // Default to Stable
-    }
-    #else
-    osuType = 1;
-    #endif
+    sendText("Cache Deleted!");
 }
 
 bool OsuPathUtility::locateOsuFolder() {
     bool noError = true;
 
     #if defined(_WIN32) || defined(_WIN64)
-    if (osuType == 2 || osuType == 0) {
+    if (osuType.first) {
         noError = locateOsuSFolder();
         if (!noError) return noError;
-        else std::cout << "Found osu!stable directory at " << osuSPath.generic_string() << "\n";
+        else sendText("Found osu!stable directory at " + osuSPath.generic_string());
     }
     #endif
 
-    if (osuType == 2 || osuType == 1) {
+    if (osuType.second) {
         noError = locateOsuLFolder();
         if (!noError) return noError;
-        else std::cout << "Found osu!lazer directory at " << osuLPath.generic_string() << "\n";
+        else sendText("Found osu!lazer directory at " + osuSPath.generic_string());
     }
 
     return noError;
@@ -204,7 +174,7 @@ void OsuPathUtility::createDirectory(const std::filesystem::path& directory) {
         std::filesystem::create_directories(directory);
     }
     catch(const std::exception& e) {
-        std::cerr << e.what() << '\n';
+        throw std::invalid_argument(e.what());
     }
 }
 
@@ -213,7 +183,7 @@ void OsuPathUtility::copyFiles(const std::filesystem::path& source, const std::f
         std::filesystem::copy(source, destination, std::filesystem::copy_options::recursive | std::filesystem::copy_options::update_existing);
     }
     catch(const std::exception& e) {
-        std::cerr << e.what() << '\n';
+        throw std::invalid_argument(e.what());
     }
 }
 
@@ -222,6 +192,12 @@ void OsuPathUtility::copyFile(const std::filesystem::path& source, const std::fi
     std::filesystem::copy_file(source, destination, std::filesystem::copy_options::update_existing);
     }
     catch(const std::exception& e) {
-        std::cerr << e.what() << '\n';
+        throw std::invalid_argument(e.what());
     }
+}
+
+void OsuPathUtility::sendText(const std::string text) {
+    std::lock_guard<std::mutex> lock(*queueMutex);
+    textQueue->push(text);
+    queueNotify->notify_one();
 }

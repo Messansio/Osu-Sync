@@ -36,10 +36,12 @@ add_subdirectory(CompressionUtility)
 
 
 
-option(GUI "GUI Version" OFF) # Select GUI or CLI version
+option(OSU_SYNC_GUI "GUI Version" OFF) # Select GUI or CLI version
 
-if (GUI)
+if (OSU_SYNC_GUI)
     message(STATUS "Selected GUI version")
+    add_subdirectory(raylib)
+    add_subdirectory(OsuSyncEngine)
     add_subdirectory(OsuSync_GUI)
 else()
     message(STATUS "Selected CLI version")

@@ -1,3 +1,6 @@
 [submodule "bit7z"]
 	path = bit7z
 	url = https://github.com/rikyoz/bit7z.git
+[submodule "raylib"]
+	path = raylib
+	url = https://github.com/raysan5/raylib.git
