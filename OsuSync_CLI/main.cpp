@@ -73,6 +73,7 @@ void run(const bool isSyncing, std::pair<bool,bool> whatClient, std::queue<std::
     } catch(const std::exception& e) {
         std::cout << e.what() << "\n";
     }
+    queueNotify.notify_all();
 }
 
 
@@ -95,7 +96,6 @@ int main(void) {
     std::cout << "\n" ;
 
     const bool isSyncing = askIfSync();
-
     std::pair<bool,bool> whatClient = askStableOrLazer();
 
     std::queue<std::string> textQueue;
@@ -116,7 +116,7 @@ int main(void) {
         }
 
         queueNotify.wait(lock, [&textQueue, &running] {
-        return !textQueue.empty() || !running;
+        return !textQueue.empty() || !running.load();
         });
 
         if (osuSyncThread.joinable() && textQueue.empty()) running = false;
