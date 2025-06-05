@@ -162,7 +162,7 @@ bool OsuPathUtility::locateOsuLFolder() {
     #else
         osuLPath = getenv("APPDATA");
         osuLPath.append("sh.ppy.osu");
-
+        sendText(osuLPath.generic_string());
     #endif
     return std::filesystem::exists(osuLPath);
 }
