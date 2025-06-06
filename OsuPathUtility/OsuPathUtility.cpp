@@ -7,22 +7,21 @@ OsuPathUtility::OsuPathUtility(const bool isSyncing, const std::pair<bool,bool> 
 : osuType(whatClient), textQueue(&stringQueue), queueMutex(&mutex), queueNotify(&queueCV) {
     osuSPath.clear();
     osuLPath.clear();
-    std::cout << "textQueue: " << textQueue << "\n";
-    std::cout << "queueMutex: " << queueMutex << "\n";
-    std::cout << "queueNotify: " << queueNotify << "\n";
 }
 
 void OsuPathUtility::LocateOsuPath() {
     #if defined(_WIN32) || defined(_WIN64)
     if (osuType.first) {
         locateOsuSFolder();
-        sendText("Found osu!stable directory at " + osuSPath.generic_string());
+        std::string sPathText = "Found osu!stable directory at ";
+        sendText(sPathText.append(osuSPath.generic_string()));
     }
     #endif
 
     if (osuType.second) {
         locateOsuLFolder();
-        sendText("Found osu!lazer directory at " + osuLPath.generic_string());
+        std::string lPathText = "Found osu!lazer directory at ";
+        sendText(lPathText.append(osuLPath.generic_string()));
     }
 }
 
