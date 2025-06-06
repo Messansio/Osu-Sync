@@ -23,11 +23,13 @@ bool askIfSync() {
         isInputValid = inputValidation(temp);
         std::cout << "\n";
     }
-
-    return temp[0] == 'y' || temp[0] == 'Y';
+    const char resoult = temp[0];
+    if (resoult == 'y' || resoult == 'Y') return true;
+    else return false;
 }
 
-short int askStableOrLazer() {
+std::pair<bool,bool> askStableOrLazer() {
+    std::pair<bool,bool> whatClient = std::make_pair(false, true);
     #if defined(_WIN32) || defined(_WIN64)
     std::string temp;
     std::cout << "Chose which osu! you want to sync?\n0: Stable (default)\n1: Lazer\n2: Both\n";
@@ -36,19 +38,25 @@ short int askStableOrLazer() {
     std::cout << "\n";
 
     if (temp[0] == '2') {
-        return 2;
+        whatClient.first = true;
+        whatClient.second = true;
     } else if (temp[0] == '1') {
-        return 1;
+        whatClient.first = false;
+        whatClient.second = true;
     }
     else if (temp[0] == '0') {
-        return 1;
+        whatClient.first = true;
+        whatClient.second = false;
     }
     else {
         std::cout << "Invalid input, defaulting to Stable.\n";
-        return 0;
+        whatClient.first = true;
+        whatClient.second = false;
     }
+    #else
+    std::cout << "Linux Detected, defaulting to Lazer.\n";
     #endif
-    return 1;
+    return whatClient;
 }
 
 void run(const bool isSyncing, std::pair<bool,bool> whatClient, std::queue<std::string> &textQueue, std::mutex &mutex, std::condition_variable &queueNotify) {
@@ -88,20 +96,8 @@ int main(void) {
     std::cout << "\n" ;
 
     const bool isSyncing = askIfSync();
-    const short int choose = askStableOrLazer();
 
-    std::pair<bool,bool> whatClient{false, true};
-
-    if (choose == 0) {
-        whatClient.first = true;
-        whatClient.second = false;
-    } else if (choose == 1) {
-        whatClient.first = false;
-        whatClient.second = true;
-    } else {
-        whatClient.first = true;
-        whatClient.second = true;
-    }
+    std::pair<bool,bool> whatClient = askStableOrLazer();
 
     std::queue<std::string> textQueue;
     std::mutex queueMutex;
