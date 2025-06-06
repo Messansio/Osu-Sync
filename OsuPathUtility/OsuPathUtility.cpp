@@ -7,19 +7,19 @@ OsuPathUtility::OsuPathUtility(const bool isSyncing, const std::pair<bool,bool> 
     osuSPath.clear();
     osuLPath.clear();
 
-    #if defined(_WIN32) || defined(_WIN64)
-    if (osuType.first) {
-        locateOsuSFolder();
-        sendText("Found osu!stable directory at " + osuSPath.generic_string());
-    }
-    #endif
-
     sendText("before locating lazer");
 
     if (osuType.second) {
         locateOsuLFolder();
         sendText("Found osu!lazer directory at " + osuLPath.generic_string());
     }
+
+    #if defined(_WIN32) || defined(_WIN64)
+    if (osuType.first) {
+        locateOsuSFolder();
+        sendText("Found osu!stable directory at " + osuSPath.generic_string());
+    }
+    #endif
 
     sendText("after locating lazer");
 }
