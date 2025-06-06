@@ -1,11 +1,15 @@
 #include "OsuPathUtility.h"
 
 #include <stdexcept>
+#include <iostream>
 
 OsuPathUtility::OsuPathUtility(const bool isSyncing, const std::pair<bool,bool> whatClient, std::queue<std::string> &stringQueue, std::mutex &mutex, std::condition_variable &queueCV) 
 : osuType(whatClient), textQueue(&stringQueue), queueMutex(&mutex), queueNotify(&queueCV) {
     osuSPath.clear();
     osuLPath.clear();
+    std::cout << "textQueue: " << textQueue << "\n";
+    std::cout << "queueMutex: " << queueMutex << "\n";
+    std::cout << "queueNotify: " << queueNotify << "\n";
 }
 
 void OsuPathUtility::LocateOsuPath() {
