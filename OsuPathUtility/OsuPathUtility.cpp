@@ -7,8 +7,6 @@ OsuPathUtility::OsuPathUtility(const bool isSyncing, const std::pair<bool,bool> 
     osuSPath.clear();
     osuLPath.clear();
 
-    sendText("inside OsuPathUtility constructor");
-
     #if defined(_WIN32) || defined(_WIN64)
     if (osuType.first) {
         locateOsuSFolder();
