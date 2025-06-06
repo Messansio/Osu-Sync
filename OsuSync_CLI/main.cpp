@@ -95,6 +95,7 @@ int main(void) {
     #else
     std::cout << "Linux Detected, defaulting to Lazer.\n";
     std::pair<bool,bool> whatClient = std::make_pair(false, true);
+    std::cout << "Pair: (" << whatClient.first << ", " << whatClient.second << ")\n";
     #endif
 
     std::queue<std::string> textQueue;
