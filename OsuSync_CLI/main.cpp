@@ -100,12 +100,8 @@ int main(void) {
     std::queue<std::string> textQueue;
     std::mutex queueMutex;
     std::condition_variable queueNotify;
-
-    std::cout << "before thread\n";
     
     std::thread osuSyncThread(&run, isSyncing, whatClient, ref(textQueue), ref(queueMutex), ref(queueNotify));
-
-    std::cout << "after thread\n";
 
     std::atomic<bool> running{true};
 
@@ -113,7 +109,7 @@ int main(void) {
         std::unique_lock<std::mutex> lock(queueMutex);
 
         while(!textQueue.empty()) {
-        std::cout << textQueue.front().c_str() << "\n";
+        std::cout << textQueue.front() << "\n";
         textQueue.pop();
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }

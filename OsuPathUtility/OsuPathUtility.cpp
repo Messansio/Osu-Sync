@@ -7,6 +7,8 @@ OsuPathUtility::OsuPathUtility(const bool isSyncing, const std::pair<bool,bool> 
     osuSPath.clear();
     osuLPath.clear();
 
+    sendText("inside OsuPathUtility constructor");
+
     bool found = locateOsuFolder();
 
     if (!found) {
@@ -135,11 +137,15 @@ bool OsuPathUtility::locateOsuFolder() {
     }
     #endif
 
+    sendText("before locating lazer");
+
     if (osuType.second) {
         noError = locateOsuLFolder();
         if (!noError) return noError;
         else sendText("Found osu!lazer directory at " + osuSPath.generic_string());
     }
+
+    sendText("after locating lazer");
 
     return noError;
 }
