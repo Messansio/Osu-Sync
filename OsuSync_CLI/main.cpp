@@ -28,36 +28,28 @@ bool askIfSync() {
     else return false;
 }
 
+#if defined(_WIN32) || defined(_WIN64)
 std::pair<bool,bool> askStableOrLazer() {
-    std::pair<bool,bool> whatClient = std::make_pair(false, true);
-    #if defined(_WIN32) || defined(_WIN64)
+    bool isLazer = false;
+    bool isStable = false;
+
     std::string temp;
     std::cout << "Chose which osu! you want to sync?\n0: Stable (default)\n1: Lazer\n2: Both\n";
     std::cout << "Your input: ";
     std::cin >> temp;
     std::cout << "\n";
 
-    if (temp[0] == '2') {
-        whatClient.first = true;
-        whatClient.second = true;
-    } else if (temp[0] == '1') {
-        whatClient.first = false;
-        whatClient.second = true;
-    }
-    else if (temp[0] == '0') {
-        whatClient.first = true;
-        whatClient.second = false;
-    }
-    else {
+    isLazer = temp[0] == '2' || temp[0] == '1';
+    isStable = temp[0] == '2' || temp[0] == '0';
+
+    if (!isLazer && !isStable) {
         std::cout << "Invalid input, defaulting to Stable.\n";
-        whatClient.first = true;
-        whatClient.second = false;
+        isStable = true;
     }
-    #else
-    std::cout << "Linux Detected, defaulting to Lazer.\n";
-    #endif
-    return whatClient;
+
+    return std::make_pair(isStable, isLazer);
 }
+#endif
 
 void run(const bool isSyncing, std::pair<bool,bool> whatClient, std::queue<std::string> &textQueue, std::mutex &mutex, std::condition_variable &queueNotify) {
     try {
@@ -97,7 +89,12 @@ int main(void) {
 
     const bool isSyncing = askIfSync();
 
+    #if defined(_WIN32) || defined(_WIN64)
     std::pair<bool,bool> whatClient = askStableOrLazer();
+    #else
+    std::cout << "Linux Detected, defaulting to Lazer.\n";
+    std::pair<bool,bool> whatClient = std::make_pair(false, true);
+    #endif
 
     std::queue<std::string> textQueue;
     std::mutex queueMutex;
