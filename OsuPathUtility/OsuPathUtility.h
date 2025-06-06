@@ -24,9 +24,8 @@ private:
     std::filesystem::path osuSPath;
     std::filesystem::path osuLPath;
 
-    bool locateOsuFolder();
-    bool locateOsuSFolder();
-    bool locateOsuLFolder();
+    void locateOsuSFolder();
+    void locateOsuLFolder();
 
     void createDirectory(const std::filesystem::path& directory);
     void copyFiles(const std::filesystem::path& source, const std::filesystem::path& destination) const;

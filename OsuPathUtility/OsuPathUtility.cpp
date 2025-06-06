@@ -9,11 +9,21 @@ OsuPathUtility::OsuPathUtility(const bool isSyncing, const std::pair<bool,bool> 
 
     sendText("inside OsuPathUtility constructor");
 
-    bool found = locateOsuFolder();
-
-    if (!found) {
-        throw std::invalid_argument("Can't find your osu! folder.");
+    #if defined(_WIN32) || defined(_WIN64)
+    if (osuType.first) {
+        locateOsuSFolder();
+        sendText("Found osu!stable directory at " + osuSPath.generic_string());
     }
+    #endif
+
+    sendText("before locating lazer");
+
+    if (osuType.second) {
+        locateOsuLFolder();
+        sendText("Found osu!lazer directory at " + osuLPath.generic_string());
+    }
+
+    sendText("after locating lazer");
 }
 
 void OsuPathUtility::CopyOsuFiles() {
@@ -126,42 +136,18 @@ void OsuPathUtility::SyncOsuFiles() {
     sendText("Cache Deleted!");
 }
 
-bool OsuPathUtility::locateOsuFolder() {
-    bool noError = true;
-
-    #if defined(_WIN32) || defined(_WIN64)
-    if (osuType.first) {
-        noError = locateOsuSFolder();
-        if (!noError) return noError;
-        else sendText("Found osu!stable directory at " + osuSPath.generic_string());
-    }
-    #endif
-
-    sendText("before locating lazer");
-
-    if (osuType.second) {
-        noError = locateOsuLFolder();
-        if (!noError) return noError;
-        else sendText("Found osu!lazer directory at " + osuSPath.generic_string());
-    }
-
-    sendText("after locating lazer");
-
-    return noError;
-}
-
-bool OsuPathUtility::locateOsuSFolder() {
+void OsuPathUtility::locateOsuSFolder() {
     #if defined(_WIN32) || defined(_WIN64)
     osuSPath = getenv("LOCALAPPDATA");
-
     osuSPath.append("osu!");
-    return std::filesystem::exists(osuSPath);
-    #else
-    return false;
+
+    if (!std::filesystem::exists(osuSPath)) {
+        throw std::invalid_argument("Can't find your osu!Stable folder.");
+    }
     #endif
 }
 
-bool OsuPathUtility::locateOsuLFolder() {
+void OsuPathUtility::locateOsuLFolder() {
     #if defined(_WIN32) || defined(_WIN64)
     osuLPath = getenv("APPDATA");
     osuLPath.append("osu");
@@ -170,7 +156,9 @@ bool OsuPathUtility::locateOsuLFolder() {
         osuLPath.append("sh.ppy.osu");
         sendText(osuLPath.generic_string());
     #endif
-    return std::filesystem::exists(osuLPath);
+    if (!std::filesystem::exists(osuLPath)) {
+        throw std::invalid_argument("Can't find your osu!Lazer folder.");
+    }
 }
 
 void OsuPathUtility::createDirectory(const std::filesystem::path& directory) {

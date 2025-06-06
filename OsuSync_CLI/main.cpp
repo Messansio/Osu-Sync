@@ -53,7 +53,6 @@ std::pair<bool,bool> askStableOrLazer() {
 
 void run(const bool isSyncing, std::pair<bool,bool> whatClient, std::queue<std::string> &textQueue, std::mutex &mutex, std::condition_variable &queueNotify) {
     try {
-        std::cout << "inside thread\n";
         OsuPathUtility osuPathUtility(isSyncing, whatClient, textQueue, mutex, queueNotify);
         CompressionUtility zipper(isSyncing, textQueue, mutex, queueNotify);
         if (isSyncing) {
