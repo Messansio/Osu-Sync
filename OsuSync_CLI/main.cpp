@@ -27,10 +27,7 @@ bool askIfSync() {
     return temp[0] == 'y' || temp[0] == 'Y';
 }
 
-std::pair<bool,bool> askStableOrLazer() {
-    std::cout << "core stupido 1";
-    std::pair<bool,bool> isLazerOrStable{false, true};
-    std::cout << "core stupido 2";
+short int askStableOrLazer() {
     #if defined(_WIN32) || defined(_WIN64)
     std::string temp;
     std::cout << "Chose which osu! you want to sync?\n0: Stable (default)\n1: Lazer\n2: Both\n";
@@ -38,25 +35,20 @@ std::pair<bool,bool> askStableOrLazer() {
     std::cin >> temp;
     std::cout << "\n";
 
-    if (temp[0] == '2' || temp[0] == '0') {
-        isLazerOrStable.first = true;
-    } else {
-        isLazerOrStable.first = false;
+    if (temp[0] == '2') {
+        return 2;
+    } else if (temp[0] == '1') {
+        return 1;
     }
-
-    if (temp[0] == '2' || temp[0] == '1') {
-        isLazerOrStable.second = true;
-    } else {
-        isLazerOrStable.second = false;
+    else if (temp[0] == '0') {
+        return 1;
     }
-
-    if (!isLazerOrStable.first && !isLazerOrStable.second) {
+    else {
         std::cout << "Invalid input, defaulting to Stable.\n";
-        isLazerOrStable.first = true;
-        isLazerOrStable.second = false;
+        return 0;
     }
     #endif
-    return isLazerOrStable;
+    return 1;
 }
 
 void run(const bool isSyncing, std::pair<bool,bool> whatClient, std::queue<std::string> &textQueue, std::mutex &mutex, std::condition_variable &queueNotify) {
@@ -96,7 +88,20 @@ int main(void) {
     std::cout << "\n" ;
 
     const bool isSyncing = askIfSync();
-    std::pair<bool,bool> whatClient = askStableOrLazer();
+    const short int choose = askStableOrLazer();
+
+    std::pair<bool,bool> whatClient{false, true};
+
+    if (choose == 0) {
+        whatClient.first = true;
+        whatClient.second = false;
+    } else if (choose == 1) {
+        whatClient.first = false;
+        whatClient.second = true;
+    } else {
+        whatClient.first = true;
+        whatClient.second = true;
+    }
 
     std::queue<std::string> textQueue;
     std::mutex queueMutex;
