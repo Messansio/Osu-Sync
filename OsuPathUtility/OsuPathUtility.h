@@ -15,9 +15,9 @@ public:
     void CopyOsuFiles();
     void SyncOsuFiles();
 private:
-    std::unique_ptr<std::queue<std::string>> textQueue;
-    std::unique_ptr<std::mutex> queueMutex;
-    std::unique_ptr<std::condition_variable> queueNotify;
+    std::shared_ptr<std::queue<std::string>> textQueue;
+    std::shared_ptr<std::mutex> queueMutex;
+    std::shared_ptr<std::condition_variable> queueNotify;
 
     const std::pair<bool,bool> osuType;
 
