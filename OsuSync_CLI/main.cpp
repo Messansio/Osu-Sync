@@ -54,6 +54,7 @@ std::pair<bool,bool> askStableOrLazer() {
 void run(const bool isSyncing, std::pair<bool,bool> whatClient, std::queue<std::string> &textQueue, std::mutex &mutex, std::condition_variable &queueNotify) {
     try {
         OsuPathUtility osuPathUtility(isSyncing, whatClient, textQueue, mutex, queueNotify);
+        osuPathUtility.LocateOsuPath();
         CompressionUtility zipper(isSyncing, textQueue, mutex, queueNotify);
         if (isSyncing) {
             zipper.Decompress();

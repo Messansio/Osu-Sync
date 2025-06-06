@@ -12,6 +12,7 @@ class OsuPathUtility {
 public:
     OsuPathUtility(const bool isSyncing, const std::pair<bool,bool> whatClient, std::queue<std::string> &stringQueue, std::mutex &mutex, std::condition_variable &queueCV);
 
+    void LocateOsuPath();
     void CopyOsuFiles();
     void SyncOsuFiles();
 private:
