@@ -23,46 +23,43 @@ bool askIfSync() {
         isInputValid = inputValidation(temp);
         std::cout << "\n";
     }
-
-    return temp[0] == 'y' || temp[0] == 'Y';
+    const char resoult = temp[0];
+    if (resoult == 'y' || resoult == 'Y') return true;
+    else return false;
 }
 
+#if defined(_WIN32) || defined(_WIN64)
 std::pair<bool,bool> askStableOrLazer() {
-    bool isLazer = true;
+    bool isLazer = false;
     bool isStable = false;
 
-    #if defined(_WIN32) || defined(_WIN64)
     std::string temp;
     std::cout << "Chose which osu! you want to sync?\n0: Stable (default)\n1: Lazer\n2: Both\n";
     std::cout << "Your input: ";
     std::cin >> temp;
     std::cout << "\n";
 
-    if (temp[0] == '2' || temp[0] == '1') {
-        isLazer = true;
-    } else {
-        isLazer = false;
-    }
-    
-    if (temp[0] == '2' || temp[0] == '0') {
-        isStable = true;
-    } else {
-        isStable = false;
-    }
+    isLazer = temp[0] == '2' || temp[0] == '1';
+    isStable = temp[0] == '2' || temp[0] == '0';
 
-    if (!isStable && !isLazer) {
+    if (!isLazer && !isStable) {
         std::cout << "Invalid input, defaulting to Stable.\n";
         isStable = true;
-        isLazer = false;
     }
-    #endif
+
     return std::make_pair(isStable, isLazer);
 }
+#endif
 
 void run(const bool isSyncing, std::pair<bool,bool> whatClient, std::queue<std::string> &textQueue, std::mutex &mutex, std::condition_variable &queueNotify) {
     try {
+        std::unique_lock<std::mutex> lock(mutex);
         OsuPathUtility osuPathUtility(isSyncing, whatClient, textQueue, mutex, queueNotify);
         CompressionUtility zipper(isSyncing, textQueue, mutex, queueNotify);
+        lock.unlock();
+
+        osuPathUtility.LocateOsuPath();
+
         if (isSyncing) {
             zipper.Decompress();
             osuPathUtility.SyncOsuFiles();
@@ -96,7 +93,13 @@ int main(void) {
     std::cout << "\n" ;
 
     const bool isSyncing = askIfSync();
+
+    #if defined(_WIN32) || defined(_WIN64)
     std::pair<bool,bool> whatClient = askStableOrLazer();
+    #else
+    std::cout << "Linux Detected, defaulting to Lazer.\n";
+    std::pair<bool,bool> whatClient = std::make_pair(false, true);
+    #endif
 
     std::queue<std::string> textQueue;
     std::mutex queueMutex;
@@ -104,13 +107,13 @@ int main(void) {
     
     std::thread osuSyncThread(&run, isSyncing, whatClient, ref(textQueue), ref(queueMutex), ref(queueNotify));
 
-    std::atomic<bool> running = true;
+    std::atomic<bool> running{true};
 
-    while(running) {
+    while(running.load()) {
         std::unique_lock<std::mutex> lock(queueMutex);
 
         while(!textQueue.empty()) {
-        std::cout << textQueue.front().c_str() << "\n";
+        std::cout << textQueue.front() << "\n";
         textQueue.pop();
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
