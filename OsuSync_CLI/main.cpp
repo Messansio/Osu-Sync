@@ -53,9 +53,13 @@ std::pair<bool,bool> askStableOrLazer() {
 
 void run(const bool isSyncing, std::pair<bool,bool> whatClient, std::queue<std::string> &textQueue, std::mutex &mutex, std::condition_variable &queueNotify) {
     try {
+        std::unique_lock<std::mutex> lock(mutex);
         OsuPathUtility osuPathUtility(isSyncing, whatClient, textQueue, mutex, queueNotify);
-        osuPathUtility.LocateOsuPath();
         CompressionUtility zipper(isSyncing, textQueue, mutex, queueNotify);
+        lock.unlock();
+
+        osuPathUtility.LocateOsuPath();
+
         if (isSyncing) {
             zipper.Decompress();
             osuPathUtility.SyncOsuFiles();
@@ -95,7 +99,6 @@ int main(void) {
     #else
     std::cout << "Linux Detected, defaulting to Lazer.\n";
     std::pair<bool,bool> whatClient = std::make_pair(false, true);
-    std::cout << "Pair: (" << whatClient.first << ", " << whatClient.second << ")\n";
     #endif
 
     std::queue<std::string> textQueue;
