@@ -10,7 +10,7 @@
 
 class CompressionUtility {
 public:
-    CompressionUtility(const bool& isSyncing, std::queue<std::string> &stringQueue, std::mutex &mutex, std::condition_variable &queueCV);
+    CompressionUtility(const bool isSyncing, std::queue<std::string> &stringQueue, std::mutex &mutex, std::condition_variable &queueCV);
     
     void Compress();
     void Decompress();
