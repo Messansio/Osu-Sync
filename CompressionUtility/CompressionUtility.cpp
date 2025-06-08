@@ -10,10 +10,10 @@
 #define SEVEN_Z_PATH "/usr/lib/7z.so"
 #endif
 
-CompressionUtility::CompressionUtility(const bool& isSyncing, std::queue<std::string> &stringQueue, std::mutex &mutex, std::condition_variable &queueCV)
+CompressionUtility::CompressionUtility(const bool isSyncing, std::queue<std::string> &stringQueue, std::mutex &mutex, std::condition_variable &queueCV)
 : currentPath(std::filesystem::current_path()), sevenZipFilePath(SEVEN_Z_PATH), textQueue(&stringQueue), queueMutex(&mutex), queueNotify(&queueCV) {
     if (!std::filesystem::exists(sevenZipFilePath)) {
-        throw std::invalid_argument("Can't find your 7z.dll file. Make sure you have 7zip downloaded.");
+        throw std::invalid_argument("Can't find 7z. Make sure you have 7zip downloaded.");
     }
 }
 
